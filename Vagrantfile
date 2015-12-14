@@ -24,7 +24,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Required to go and get our dependencies using `godep` below
   config.vm.provision "file", source: "~/.gitconfig", destination: ".gitconfig"
   config.vm.provision "file", source: "~/.ssh/id_rsa", destination: ".ssh/id_rsa"
-  config.vm.provision 'shell', inline: 'apt-get install -yf git'
+  config.vm.provision 'shell', inline: 'apt-get install -yf git python-virtualenv'
 
   # Before running Puppet, we need to install some gems.
   config.vm.provision 'shell', inline: 'curl -sSL https://get.docker.com/ | sh'
