@@ -36,7 +36,6 @@
 #
 # Copyright 2012 Nextdoor Inc.
 
-from sys import stdout, stderr
 import optparse
 import socket
 import subprocess
@@ -107,9 +106,6 @@ class WatcherDaemon(threading.Thread):
         self._config_file = config_file
         self._server = server
         self._verbose = verbose
-
-        # Get a logger for nd_service_registry and set it to be quiet
-        nd_log = logging.getLogger('nd_service_registry')
 
         # Set up our threading environment
         self._event = threading.Event()
@@ -477,7 +473,7 @@ def setup_logger():
 
 def main():
     logger = setup_logger()
-    watcher = WatcherDaemon(
+    WatcherDaemon(
         config_file=options.config,
         server=options.server,
         verbose=options.verbose)
