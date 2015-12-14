@@ -192,7 +192,8 @@ class WatcherDaemon(threading.Thread):
                 zookeeper_data = {}
 
             try:
-                service_hostname = self._config.get(service, 'service_hostname')
+                service_hostname = self._config.get(
+                        service, 'service_hostname')
             except:
                 service_hostname = socket.getfqdn()
 
@@ -229,7 +230,7 @@ class WatcherDaemon(threading.Thread):
         # Check if any watchers need to be destroyed because they're no longer
         # in our config.
         for w in self._watchers:
-            if not w._service in list(self._config.sections()):
+            if w._service not in list(self._config.sections()):
                 w.stop()
                 self._watchers.remove(w)
 
