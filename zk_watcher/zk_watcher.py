@@ -378,11 +378,11 @@ class ServiceWatcher(threading.Thread):
         try:
             self._sr.set_node(self._fullpath, self._data, state)
             self.log.debug('[%s] sucessfully updated path %s with state %s' %
-                          (self._service, self._fullpath, state))
+                           (self._service, self._fullpath, state))
             return True
         except exceptions.NoConnection, e:
             self.log.warn('[%s] could not update path %s with state %s: %s' %
-                         (self._service, self._fullpath, state, e))
+                          (self._service, self._fullpath, state, e))
             return False
 
 
@@ -427,7 +427,7 @@ class Command(object):
                 self.log.warn('Failed to run: %s' % e)
                 return 1
             self.log.debug('[%s] finished... returning %s' %
-                          (self._cmd, self._process.returncode))
+                           (self._cmd, self._process.returncode))
 
         thread = threading.Thread(target=target)
         thread.start()
