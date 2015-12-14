@@ -1,0 +1,1 @@
+nd_service_registry>=1.0.0
