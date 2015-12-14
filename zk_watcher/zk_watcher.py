@@ -13,31 +13,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""Daemon that monitors a set of services and updates a ServiceRegistry
-with their status.
-
-The purpose of this script is to monitor a given 'service' on a schedule
-defined by 'refresh' and register or de-register that service with an Apache
-ZooKeeper instance.
-
-The script reads in a config file (default /etc/zk/config.cfg) and parses each
-section. Each section begins with a header that defines the service name for
-logging purposes, and then contains several config options that tell us how to
-monitor the service. Eg:
-
-  [memcache]
-  cmd: pgrep memcached
-  refresh: 30
-  service_port: 11211
-  service_hostname: 123.123.123.123
-  zookeeper_path: /services/prod-uswest1-mc
-  zookeeper_data: { "foo": "bar", "bar": "foo" }
-
-Copyright 2012 Nextdoor Inc.
-"""
-
-__author__ = 'matt@nextdoor.com (Matt Wise)'
+#
+# Daemon that monitors a set of services and updates a ServiceRegistry
+# with their status.
+#
+# The purpose of this script is to monitor a given 'service' on a schedule
+# defined by 'refresh' and register or de-register that service with an Apache
+# ZooKeeper instance.
+#
+# The script reads in a config file (default /etc/zk/config.cfg) and parses
+# each section. Each section begins with a header that defines the service name
+# for logging purposes, and then contains several config options that tell us
+# how to monitor the service. Eg:
+#
+#   [memcache]
+#   cmd: pgrep memcached
+#   refresh: 30
+#   service_port: 11211
+#   service_hostname: 123.123.123.123
+#   zookeeper_path: /services/prod-uswest1-mc
+#   zookeeper_data: { "foo": "bar", "bar": "foo" }
+#
+# Copyright 2012 Nextdoor Inc.
 
 from sys import stdout, stderr
 import optparse
@@ -58,6 +55,7 @@ from nd_service_registry import exceptions
 
 # Our default variables
 from version import __version__ as VERSION
+__author__ = 'matt@nextdoor.com (Matt Wise)'
 
 # Defaults
 LOG = '/var/log/zk_watcher.log'
