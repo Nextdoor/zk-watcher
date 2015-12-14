@@ -1,4 +1,4 @@
-# Copyright 2012 Nextdoor.com, Inc.
+# Copyright 2015 Nextdoor.com, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,38 +13,108 @@
 # limitations under the License.
 
 import os
+import sys
 import shutil
-import subprocess
 
 from distutils.command.clean import clean
 from distutils.command.sdist import sdist
+from setuptools import Command
 from setuptools import setup
+from setuptools import find_packages
+
+from zk_watcher.version import __version__
 
 PACKAGE = 'zk_watcher'
-__version__ = None
-execfile(os.path.join(PACKAGE, 'version.py'))  # set __version__
-
-manpath = 'man'
-if os.path.realpath('/usr/local/man') == '/usr/local/share/man':
-    # This works around a bug with install where it expects every node
-    # in the relative data directory to be an actual directory, since at
-    # least Debian derivatives (and probably other platforms as well)
-    # like to symlink Unixish /usr/local/man to /usr/local/share/man.
-    manpath = os.path.join('share', manpath)
+DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-class SourceDistHook(sdist):
+def maybe_rm(path):
+    """Simple method for removing a file/dir if it exists"""
+    if os.path.exists(path):
+        try:
+            shutil.rmtree(path)
+        except:
+            os.remove(path)
+
+
+class Pep8Command(Command):
+    description = 'Pep8 Lint Checks'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
 
     def run(self):
-        with open('version.rst', 'w') as f:
-            f.write(':Version: %s\n' % __version__)
-        shutil.copy('README.rst', 'README')
-        subprocess.call(['rst2man', 'zk_watcher.rst', 'zk_watcher.1'])
-        sdist.run(self)
-        os.unlink('MANIFEST')
-        os.unlink('README')
-        os.unlink('zk_watcher.1')
-        os.unlink('version.rst')
+        # Don't import the pep8 module until now because setup.py needs to be
+        # able to install Pep8 if its missing.
+        import pep8
+        pep8style = pep8.StyleGuide(parse_argv=True, config_file='pep8.cfg')
+        report = pep8style.check_files([PACKAGE])
+        if report.total_errors:
+            sys.exit('ERROR: Pep8 failed with exit %d errors' %
+                     report.total_errors)
+
+
+class PyflakesCommand(Command):
+    description = 'Pyflakes Checks'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # Don't import the pyflakes code until now because setup.py needs to be
+        # able to install Pyflakes if its missing. This localizes the import to
+        # only after the setuptools code has run and verified everything is
+        # installed.
+        from pyflakes import api
+        from pyflakes import reporter
+
+        # Run the Pyflakes check against our package and check its output
+        val = api.checkRecursive([PACKAGE], reporter._makeDefaultReporter())
+        if val > 0:
+            sys.exit('ERROR: Pyflakes failed with exit code %d' % val)
+
+
+class UnitTestCommand(Command):
+    description = 'Run unit tests'
+    user_options = []
+    args = [PACKAGE,
+            '--with-coverage',
+            '--cover-package=%s' % PACKAGE,
+            '-v']
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        # (imported here so that the setup.py can install the rest of the test
+        # requirements, including nose...)
+        import nose
+        maybe_rm('.coverage')
+        val = nose.run(argv=self.args)
+
+        if not val:
+            sys.exit('ERROR:Tests failed')
+
+
+class IntegrationTestCommand(UnitTestCommand):
+    description = 'Run full integration tests and unit tests'
+    args = [PACKAGE,
+            '--with-coverage',
+            '--cover-package=%s' % PACKAGE,
+            '-v',
+            '--include=integration',
+            '--attr=integration']
 
 
 class CleanHook(clean):
@@ -52,36 +122,46 @@ class CleanHook(clean):
     def run(self):
         clean.run(self)
 
-        def maybe_rm(path):
-            if os.path.exists(path):
-                shutil.rmtree(path)
-        if self.all:
-            maybe_rm('zk_watcher.egg-info')
-            maybe_rm('dist')
+        maybe_rm('%s.egg-info' % PACKAGE)
+        maybe_rm('dist')
+        maybe_rm('.coverage')
+        maybe_rm('version.rst')
+        maybe_rm('MANIFEST')
+
+
+class SourceDistHook(sdist):
+
+    def run(self):
+        with open('version.rst', 'w') as f:
+            f.write(':Version: %s\n' % __version__)
+        shutil.copy('%s/README.rst' % DIR, 'README')
+        sdist.run(self)
+        os.unlink('MANIFEST')
+        os.unlink('README')
+        os.unlink('version.rst')
+
 
 setup(
-    name='zk_watcher',
+    name=PACKAGE,
     version=__version__,
-    description='Python-based service registration daemon for Apache ZooKeeper',
-    long_description=open('README.rst').read(),
-    author='Matt Wise',
-    author_email='matt@nextdoor.com',
+    description='Service Registration Daemon for Zookeeper',
+    long_description=open('%s/README.rst' % DIR).read(),
+    author='Nextdoor Engineering',
+    author_email='eng@nextdoor.com',
     url='https://github.com/Nextdoor/zkwatcher',
-    download_url='http://pypi.python.org/pypi/zk_watcher#downloads',
+    download_url='http://pypi.python.org/pypi/%s#downloads' % PACKAGE,
     license='Apache License, Version 2.0',
-    keywords='zookeeper apache zk',
-    packages=[PACKAGE],
+    keywords='apache',
+    packages=find_packages(),
+    test_suite='nose.collector',
+    tests_require=open('%s/requirements.test.txt' % DIR).readlines(),
+    setup_requires=[],
+    install_requires=open('%s/requirements.txt' % DIR).readlines(),
     entry_points={
-        'console_scripts': ['zk_watcher = zk_watcher.zk_watcher:main'],
+        'console_scripts': [
+            'zk_watcher = zk_watcher.zk_watcher:main'
+        ],
     },
-    data_files=[
-        (os.path.join(manpath, 'man1'), ['zk_watcher.1']),
-        ('/etc/zk', ['extras/zk/config.cfg']),
-    ],
-    install_requires=[
-        'nd_service_registry >= 0.2.5',
-        'setuptools',
-    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Topic :: Software Development',
@@ -91,5 +171,12 @@ setup(
         'Operating System :: POSIX',
         'Natural Language :: English',
     ],
-    cmdclass={'sdist': SourceDistHook, 'clean': CleanHook},
+    cmdclass={
+        'sdist': SourceDistHook,
+        'clean': CleanHook,
+        'pep8': Pep8Command,
+        'pyflakes': PyflakesCommand,
+        'integration': IntegrationTestCommand,
+        'test': UnitTestCommand,
+    },
 )

@@ -13,33 +13,29 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+# Daemon that monitors a set of services and updates a ServiceRegistry
+# with their status.
+#
+# The purpose of this script is to monitor a given 'service' on a schedule
+# defined by 'refresh' and register or de-register that service with an Apache
+# ZooKeeper instance.
+#
+# The script reads in a config file (default /etc/zk/config.cfg) and parses
+# each section. Each section begins with a header that defines the service name
+# for logging purposes, and then contains several config options that tell us
+# how to monitor the service. Eg:
+#
+#   [memcache]
+#   cmd: pgrep memcached
+#   refresh: 30
+#   service_port: 11211
+#   service_hostname: 123.123.123.123
+#   zookeeper_path: /services/prod-uswest1-mc
+#   zookeeper_data: { "foo": "bar", "bar": "foo" }
+#
+# Copyright 2012 Nextdoor Inc.
 
-"""Daemon that monitors a set of services and updates a ServiceRegistry
-with their status.
-
-The purpose of this script is to monitor a given 'service' on a schedule
-defined by 'refresh' and register or de-register that service with an Apache
-ZooKeeper instance.
-
-The script reads in a config file (default /etc/zk/config.cfg) and parses each
-section. Each section begins with a header that defines the service name for
-logging purposes, and then contains several config options that tell us how to
-monitor the service. Eg:
-
-  [memcache]
-  cmd: pgrep memcached
-  refresh: 30
-  service_port: 11211
-  service_hostname: 123.123.123.123
-  zookeeper_path: /services/prod-uswest1-mc
-  zookeeper_data: { "foo": "bar", "bar": "foo" }
-
-Copyright 2012 Nextdoor Inc.
-"""
-
-__author__ = 'matt@nextdoor.com (Matt Wise)'
-
-from sys import stdout, stderr
 import optparse
 import socket
 import subprocess
@@ -58,6 +54,7 @@ from nd_service_registry import exceptions
 
 # Our default variables
 from version import __version__ as VERSION
+__author__ = 'matt@nextdoor.com (Matt Wise)'
 
 # Defaults
 LOG = '/var/log/zk_watcher.log'
@@ -109,9 +106,6 @@ class WatcherDaemon(threading.Thread):
         self._config_file = config_file
         self._server = server
         self._verbose = verbose
-
-        # Get a logger for nd_service_registry and set it to be quiet
-        nd_log = logging.getLogger('nd_service_registry')
 
         # Set up our threading environment
         self._event = threading.Event()
@@ -194,7 +188,8 @@ class WatcherDaemon(threading.Thread):
                 zookeeper_data = {}
 
             try:
-                service_hostname = self._config.get(service, 'service_hostname')
+                service_hostname = self._config.get(
+                        service, 'service_hostname')
             except:
                 service_hostname = socket.getfqdn()
 
@@ -231,7 +226,7 @@ class WatcherDaemon(threading.Thread):
         # Check if any watchers need to be destroyed because they're no longer
         # in our config.
         for w in self._watchers:
-            if not w._service in list(self._config.sections()):
+            if w._service not in list(self._config.sections()):
                 w.stop()
                 self._watchers.remove(w)
 
@@ -379,11 +374,11 @@ class ServiceWatcher(threading.Thread):
         try:
             self._sr.set_node(self._fullpath, self._data, state)
             self.log.debug('[%s] sucessfully updated path %s with state %s' %
-                          (self._service, self._fullpath, state))
+                           (self._service, self._fullpath, state))
             return True
         except exceptions.NoConnection, e:
             self.log.warn('[%s] could not update path %s with state %s: %s' %
-                         (self._service, self._fullpath, state, e))
+                          (self._service, self._fullpath, state, e))
             return False
 
 
@@ -428,7 +423,7 @@ class Command(object):
                 self.log.warn('Failed to run: %s' % e)
                 return 1
             self.log.debug('[%s] finished... returning %s' %
-                          (self._cmd, self._process.returncode))
+                           (self._cmd, self._process.returncode))
 
         thread = threading.Thread(target=target)
         thread.start()
@@ -478,7 +473,7 @@ def setup_logger():
 
 def main():
     logger = setup_logger()
-    watcher = WatcherDaemon(
+    WatcherDaemon(
         config_file=options.config,
         server=options.server,
         verbose=options.verbose)

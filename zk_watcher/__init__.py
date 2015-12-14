@@ -13,3 +13,5 @@
 # limitations under the License.
 
 from version import __version__
+
+__version__  # pyflakes
