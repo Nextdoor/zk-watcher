@@ -3,6 +3,8 @@
 .build
 .coverage
 .venv
+bin
+zookeeper.out
 build
 dist
 *.egg-info

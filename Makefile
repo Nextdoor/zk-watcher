@@ -22,6 +22,14 @@ build: .build
 image:
 	docker build -t zk_watcher .
 
+run:
+	docker rm zk_watcher
+	docker run \
+		--name "zk_watcher" \
+		--env "SERVICE_1_PROTO=http" --env "SERVICE_1_URL=/" --env "SERVICE_1_REFRESH=20" \
+		--link "apache:service_1" \
+		zk_watcher
+
 clean:
 	find . -type f -name '*.pyc' -exec rm "{}" \;
 	rm -rf $(BUILD_DIRS)
