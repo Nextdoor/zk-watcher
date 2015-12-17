@@ -1,15 +1,8 @@
 sudo: required
-services:
-  - docker
-env:  
-  - DOCKER_IMAGE_NAME=suda/my-image
 language: python
 python:
   - 2.7
 install:
-  - docker login --email=$DOCKER_HUB_EMAIL --username=$DOCKER_HUB_USERNAME --password=$DOCKER_HUB_PASSWORD
   - make build
 script:  
   - make test
-  - docker build -t $DOCKER_IMAGE_NAME .
-  - if [ ! -z "$TRAVIS_TAG" ]; then docker tag $DOCKER_IMAGE_NAME:latest $DOCKER_IMAGE_NAME:$TRAVIS_TAG; fi && docker push $DOCKER_IMAGE_NAME
