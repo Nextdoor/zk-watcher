@@ -14,39 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Daemon that monitors a set of services and updates a ServiceRegistry
-# with their status.
-#
-# The purpose of this script is to monitor a given 'service' on a schedule
-# defined by 'refresh' and register or de-register that service with an Apache
-# ZooKeeper instance.
-#
-# The script reads in a config file (default /etc/zk/config.cfg) and parses
-# each section. Each section begins with a header that defines the service name
-# for logging purposes, and then contains several config options that tell us
-# how to monitor the service. Eg:
-#
-#   [memcache]
-#   cmd: pgrep memcached
-#   refresh: 30
-#   service_port: 11211
-#   service_hostname: 123.123.123.123
-#   zookeeper_path: /services/prod-uswest1-mc
-#   zookeeper_data: { "foo": "bar", "bar": "foo" }
-#
-# Copyright 2012 Nextdoor Inc.
+# Copyright 2013 Nextdoor Inc.
 
+import ConfigParser
+import json
+import logging
+import logging.handlers
 import optparse
+import os
+import signal
 import socket
 import subprocess
 import threading
 import time
-import json
-import signal
-import ConfigParser
-import logging
-import logging.handlers
-import os
 
 # Get our ServiceRegistry class
 from nd_service_registry import KazooServiceRegistry as ServiceRegistry
@@ -91,7 +71,7 @@ class WatcherDaemon(threading.Thread):
 
     LOGGER = 'WatcherDaemon'
 
-    def __init__(self, server, config_file, verbose=False):
+    def __init__(self, server, config_file=None, verbose=False):
         """Initilization code for the main WatcherDaemon.
 
         Set up our local logger reference, and pid file locations."""

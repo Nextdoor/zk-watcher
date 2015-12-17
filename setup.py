@@ -22,8 +22,7 @@ from setuptools import Command
 from setuptools import setup
 from setuptools import find_packages
 
-from zk_watcher.version import __version__
-
+VERSION = '1.0.0a'
 PACKAGE = 'zk_watcher'
 DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -133,7 +132,7 @@ class SourceDistHook(sdist):
 
     def run(self):
         with open('version.rst', 'w') as f:
-            f.write(':Version: %s\n' % __version__)
+            f.write(':Version: %s\n' % VERSION)
         shutil.copy('%s/README.rst' % DIR, 'README')
         sdist.run(self)
         os.unlink('MANIFEST')
@@ -143,7 +142,7 @@ class SourceDistHook(sdist):
 
 setup(
     name=PACKAGE,
-    version=__version__,
+    version=VERSION,
     description='Service Registration Daemon for Zookeeper',
     long_description=open('%s/README.rst' % DIR).read(),
     author='Nextdoor Engineering',
