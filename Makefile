@@ -22,12 +22,21 @@ build: .build
 image:
 	docker build -t zk_watcher .
 
-run:
-	docker rm zk_watcher
+hello-world:
+	docker pull tutum/hello-world
+	docker rm -f hello-world || echo "No pre-existing container found"
+	docker run -d --name hello-world tutum/hello-world
+
+run: hello-world zookeeper
+	docker rm -f zk_watcher || echo "No pre-existing container found"
 	docker run \
 		--name "zk_watcher" \
-		--env "SERVICE_1_PROTO=http" --env "SERVICE_1_URL=/" --env "SERVICE_1_REFRESH=20" \
-		--link "apache:service_1" \
+		--sig-proxy=false \
+		--env "CMD=curl --silent --fail http://\$$APACHE_PORT_80_TCP_ADDR:\$$APACHE_PORT_80_TCP_PORT" \
+		--env "SVC_PORT=80" \
+		--env "SVC_HOST=$(shell hostname -f)" \
+		--env "ZK_PATH=/hello-world" \
+		--link "hello-world:apache" \
 		zk_watcher
 
 clean:
