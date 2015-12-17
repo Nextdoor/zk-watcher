@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export
-
 # Default configuration variables
 DOCKER_HOST_IP=$(route -n | awk '/UG[ \t]/{print $2}')
 ZOOKEEPER_HOST=${ZOOKEEPER_HOST:-$DOCKER_HOST_IP}

@@ -6,8 +6,7 @@ RUN apk add --update bash python py-pip py-yaml ca-certificates curl wget
 RUN mkdir /app /app/zk_watcher
 
 ADD requirements*.txt /app/
-RUN pip install -r /app/requirements.test.txt && \
-    pip install -r /app/requirements.txt
+RUN pip install -r /app/requirements.test.txt -r /app/requirements.txt
 
 ADD setup.py /app/
 ADD README.rst /app/
