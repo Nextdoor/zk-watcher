@@ -1,11 +1,15 @@
 #!/bin/bash
 
+# Exit on *any* failure
+set -e
+
 # Default configuration variables
 DOCKER_HOST_IP=$(route -n | awk '/UG[ \t]/{print $2}')
 ZOOKEEPER_HOST=${ZOOKEEPER_HOST:-$DOCKER_HOST_IP}
 ZOOKEEPER_PORT=${ZOOKEEPER_PORT:-2181}
 VERBOSE=${VERBOSE:-}
 REFRESH=${REFRESH:-30}
+DRAIN_TIME=${DRAIN_TIME:-0}
 
 # The service_hostname that we register is tricky -- it *most likely* should be
 # the public hostname/ip of the docker machine itself. This is not something
@@ -50,3 +54,9 @@ echo "Starting zk_watcher up with the following config:"
 cat /zk_watcher.cfg
 
 zk_watcher --server ${ZOOKEEPER_HOST}:${ZOOKEEPER_PORT} --config /zk_watcher.cfg $VERBOSE_ARG
+
+# On shutdown, optionally sleep for some arbitrary amount of time before
+# exiting. This allows connections to your service registered in Zookeeper to
+# drain.
+echo "Sleeping ${DRAIN_TIME}s before exiting..."
+sleep $DRAIN_TIME
