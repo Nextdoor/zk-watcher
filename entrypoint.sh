@@ -53,10 +53,22 @@ EOF
 echo "Starting zk_watcher up with the following config:"
 cat /zk_watcher.cfg
 
-zk_watcher --server ${ZOOKEEPER_HOST}:${ZOOKEEPER_PORT} --config /zk_watcher.cfg $VERBOSE_ARG
+sigterm() {
+  echo "Received SIGTERM... Shutting down."
+  kill -TERM $(cat /pidfile)
+  echo "Sleeping for ${DRAIN_TIME}s before exiting..."
+  sleep $DRAIN_TIME
+}
+trap 'sigterm' TERM INT
 
-# On shutdown, optionally sleep for some arbitrary amount of time before
-# exiting. This allows connections to your service registered in Zookeeper to
-# drain.
-echo "Sleeping ${DRAIN_TIME}s before exiting..."
-sleep $DRAIN_TIME
+zk_watcher \
+  --server ${ZOOKEEPER_HOST}:${ZOOKEEPER_PORT} \
+  --config /zk_watcher.cfg \
+  $VERBOSE_ARG &
+echo $! > /pidfile
+
+while true; do
+  echo "Weee"
+  wait %1
+  echo "waiting"
+done

@@ -16,4 +16,4 @@ RUN cd /app; python setup.py install
 ADD entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
-ENTRYPOINT "/entrypoint.sh"
+ENTRYPOINT ["/entrypoint.sh"]
