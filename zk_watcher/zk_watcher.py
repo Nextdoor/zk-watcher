@@ -86,6 +86,7 @@ class WatcherDaemon(threading.Thread):
         self._config_file = config_file
         self._server = server
         self._verbose = verbose
+        self.done = False
 
         # Set up our threading environment
         self._event = threading.Event()
@@ -96,6 +97,7 @@ class WatcherDaemon(threading.Thread):
 
         # Watch for any signals
         signal.signal(signal.SIGHUP, self._signal_handler)
+        signal.signal(signal.SIGTERM, self._signal_handler)
 
         # Bring in our configuration options
         self._parse_config()
@@ -109,11 +111,16 @@ class WatcherDaemon(threading.Thread):
     def _signal_handler(self, signum, frame):
         """Watch for certain signals"""
         self.log.warning('Received signal: %s' % signum)
-        if signum == 1:
-            self.log.warning('Received SIGHUP. Reloading config.')
+
+        if signum == signal.SIGHUP:
+            self.log.warning('Reloading config.')
             self._parse_config()
             self._connect()
             self._setup_watchers()
+
+        if signum == signal.SIGTERM:
+            self.log.warning('Terminating all node registrations.')
+            self.stop()
 
     def _parse_config(self):
         """Read in the supplied config file and update our local settings."""
@@ -252,8 +259,13 @@ class WatcherDaemon(threading.Thread):
             self._event.wait(1)
 
         # At this point we must be exiting. Kill off our above threads
+        self.log.info('Shutting down')
         for w in self._watchers:
+            self.log.info('Stopping watcher: %s' % w._path)
             w.stop()
+
+        # Finally, mark us as done
+        self.done = True
 
     def stop(self):
         self._event.set()
@@ -453,17 +465,18 @@ def setup_logger():
 
 def main():
     logger = setup_logger()
-    WatcherDaemon(
+    w = WatcherDaemon(
         config_file=options.config,
         server=options.server,
         verbose=options.verbose)
 
-    while True:
+    while True and not w.done:
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            logger.info('Exiting')
             break
+
+    logger.info('Exiting')
 
 if __name__ == '__main__':
     main()
