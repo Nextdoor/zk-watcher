@@ -480,6 +480,7 @@ def main():
         except KeyboardInterrupt:
             break
 
+    time.sleep(1)
     logger.info('Exiting')
 
 if __name__ == '__main__':
