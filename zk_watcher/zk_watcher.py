@@ -348,13 +348,17 @@ class ServiceWatcher(threading.Thread):
             self._event.wait(1)
 
         self._update(False)
+        self.log.info('Deregistering %s' % self._fullpath)
         self._sr.unset(self._fullpath)
         self._sr = None
-        self.log.debug('Watcher %s is exiting the run() loop.' % self._service)
+        self.log.info('Watcher %s is exiting the run() loop.' % self._service)
 
     def stop(self):
         """Stop the run() loop."""
         self._event.set()
+        self.log.debug("Waiting for run() loop to exit.")
+        while self._sr is not None:
+            self._event.wait(1)
 
     def _update(self, state):
         # Call ServiceRegistry.set() method with our state, data,
