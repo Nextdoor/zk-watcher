@@ -68,7 +68,5 @@ zk_watcher \
 echo $! > /pidfile
 
 while true; do
-  echo "Weee"
   wait %1
-  echo "waiting"
 done
