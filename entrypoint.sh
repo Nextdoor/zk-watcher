@@ -9,6 +9,7 @@ ZOOKEEPER_HOST=${ZOOKEEPER_HOST:-$DOCKER_HOST_IP}
 ZOOKEEPER_PORT=${ZOOKEEPER_PORT:-2181}
 VERBOSE=${VERBOSE:-}
 REFRESH=${REFRESH:-30}
+WAIT_TIME=${WAIT_TIME:-0}
 DRAIN_TIME=${DRAIN_TIME:-0}
 
 # The service_hostname that we register is tricky -- it *most likely* should be
@@ -49,6 +50,9 @@ service_port: $(eval echo ${SVC_PORT})
 service_hostname: ${SVC_HOST}
 zookeeper_path: ${ZK_PATH}
 EOF
+
+echo "Sleeping ${WAIT_TIME}s..."
+sleep ${WAIT_TIME}
 
 echo "Starting zk_watcher up with the following config:"
 cat /zk_watcher.cfg
