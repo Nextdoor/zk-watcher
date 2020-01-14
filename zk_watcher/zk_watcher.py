@@ -16,24 +16,29 @@
 #
 # Copyright 2013 Nextdoor Inc.
 
-import ConfigParser
-import json
-import logging
-import logging.handlers
-import optparse
-import os
-import signal
-import socket
-import subprocess
-import threading
-import time
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str     # noqa: E402
+from builtins import object  # noqa: E402
+
+import configparser  # noqa: E402
+import json          # noqa: E402
+import logging       # noqa: E402
+import logging.handlers  # noqa: E402
+import optparse      # noqa: E402
+import os            # noqa: E402
+import signal        # noqa: E402
+import socket        # noqa: E402
+import subprocess    # noqa: E402
+import threading     # noqa: E402
+import time          # noqa: E402
 
 # Get our ServiceRegistry class
-from nd_service_registry import KazooServiceRegistry as ServiceRegistry
-from nd_service_registry import exceptions
+from nd_service_registry import KazooServiceRegistry as ServiceRegistry   # noqa: E402
+from nd_service_registry import exceptions   # noqa: E402
 
 # Our default variables
-from version import __version__ as VERSION
+from .version import __version__ as VERSION  # noqa: E402
 __author__ = 'matt@nextdoor.com (Matt Wise)'
 
 # Defaults
@@ -125,7 +130,7 @@ class WatcherDaemon(threading.Thread):
     def _parse_config(self):
         """Read in the supplied config file and update our local settings."""
         self.log.debug('Loading config...')
-        self._config = ConfigParser.ConfigParser()
+        self._config = configparser.ConfigParser()
         self._config.read(self._config_file)
 
         # Check if auth data was supplied. If it is, read it in and then remove
@@ -134,7 +139,7 @@ class WatcherDaemon(threading.Thread):
             self.user = self._config.get('auth', 'user')
             self.password = self._config.get('auth', 'password')
             self._config.remove_section('auth')
-        except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
+        except (configparser.NoOptionError, configparser.NoSectionError):
             self.user = None
             self.password = None
 
@@ -372,7 +377,7 @@ class ServiceWatcher(threading.Thread):
             self.log.debug('[%s] sucessfully updated path %s with state %s' %
                            (self._service, self._fullpath, state))
             return True
-        except exceptions.NoConnection, e:
+        except exceptions.NoConnection as e:
             self.log.warn('[%s] could not update path %s with state %s: %s' %
                           (self._service, self._fullpath, state, e))
             return False
@@ -415,7 +420,7 @@ class Command(object):
                     stderr=None,
                     stdin=None)
                 self._process.communicate()
-            except OSError, e:
+            except OSError as e:
                 self.log.warn('Failed to run: %s' % e)
                 return 1
             self.log.debug('[%s] finished... returning %s' %

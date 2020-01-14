@@ -6,7 +6,8 @@ BUILD_DIRS = bin .build build include lib lib64 man share package *.egg
 ZOOKEEPER = $(BIN)/zookeeper
 ZOOKEEPER_VERSION ?= 3.4.7
 ZOOKEEPER_PATH ?= $(ZOOKEEPER)
-ZOOKEEPER_URL = http://apache.osuosl.org/zookeeper/zookeeper-$(ZOOKEEPER_VERSION)/zookeeper-$(ZOOKEEPER_VERSION).tar.gz
+ZOOKEEPER_URL = https://archive.apache.org/dist/zookeeper/zookeeper-$(ZOOKEEPER_VERSION)/zookeeper-$(ZOOKEEPER_VERSION).tar.gz
+
 
 .PHONY: all build clean test docs zookeeper clean-zookeeper
 
@@ -32,11 +33,12 @@ run: hello-world zookeeper
 	docker run \
 		--name "zkwatcher" \
 		--sig-proxy=false \
-		--env "CMD=curl --silent --fail http://\$$APACHE_PORT_80_TCP_ADDR:\$$APACHE_PORT_80_TCP_PORT" \
+		--env "ZOOKEEPER_HOST=host.docker.internal" \
+		--env "CMD=curl --silent --fail http://hello-world:\$$APACHE_PORT_80_TCP_PORT" \
 		--env "SVC_PORT=80" \
-		--env "SVC_HOST=$(shell hostname -f)" \
+		--env "SVC_HOST=hello-world" \
 		--env "ZK_PATH=/hello-world" \
-		--link "hello-world:apache" \
+		--link "hello-world" \
 		zkwatcher
 
 clean:
