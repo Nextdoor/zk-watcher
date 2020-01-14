@@ -1,10 +1,20 @@
 sudo: required
 language: python
 python:
-  - 3.7
-  - 3.6
-  - 3.5
+- 3.7
+- 3.6
+- 3.5
 install:
-  - make build
-script:  
-  - make test
+- make build
+script:
+- make test
+deploy:
+  - provider: pypi
+    user: __token__
+    password:
+      secure: ZwkNLcu+7e/mMRTCI3Gdz+XKqAbDlSuKmsRsKMLf2YQzpA9ALacDLUwOIw4SUhK4apSEYHpKKhuVhwqOnvVv1k58LC/uL7ncFIdgEPCiHeJJCiJV29c2WhuJHRplKdQ6mBybhDak0xhqit1NVOdYuznMiUoLZLNnQj/g+eva2xFmed5PABqenzLz/KKNAFtXCWD3HwSySptoecTbnQZpRN1nO7ky55f+cadHKiCB/csrPX6RX0Veqy5WAf/7kGb7A6CJ1p+OgXhFY1D9qvTn//dj8oa5W6JUYkZ8qWLuPav9lQq0SwQwFk06YgCWdQ46UzOzrEI1MzOK9sgu6SEpPsD+8KmRWOa/q82j2z01rgUurX45yIssvENOx4RGu5t3PfYJo0u/I1svpDhV1NuZsLKpVZoobeBgvwkmqWyrLe5BMvMIzGbtc8NxvJgtSMaq14M3OKLmrHJf0uGsbfXEbfRWFyy+P5O4A32W7mW862+NdVyFQEJlHtums9qE75IzBErx71Mmd42Ko+PfydCin7z2e6g2cQq8YGFO/wy7J+TWQSjdCVkMpbf3TNIEtq7qO8RdnafUn8+AdphfAaoiQvii0XjkEVoA9hhi4nItSg+CDmh0x8kIuDPOm4QKrqLPGcOHhSflXj5MQxjUbcKUUmYsJ7GOgM/sni63zokSSgk=
+    on:
+      tags: true
+      all_branches: true
+      condition: "$TRAVIS_TAG =~ ^version-[0-9]+.[0-9]+.[0-9]+[a-z]?$"
+    distributions: sdist bdist_wheel
